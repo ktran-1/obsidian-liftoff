@@ -47,15 +47,16 @@ export class WorkoutView extends ItemView {
 		return "dumbbell";
 	}
 
-	private createEmptyWorkout(): Workout {
-		const now = new Date();
-		return {
-			type: "workout",
-			template: null,
-			date: now.toISOString().split("T")[0]!,
-			start: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-			end: null,
-			duration: null,
+  private createEmptyWorkout(): Workout {
+    const now = new Date();
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    return {
+      type: "workout",
+      template: null,
+      date: localDate,
+      start: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+      end: null,
+      duration: null,
 			exercises: [],
 		};
 	}
