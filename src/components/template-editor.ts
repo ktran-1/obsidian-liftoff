@@ -83,6 +83,21 @@ export class TemplateEditorModal extends Modal {
 			const isDuration = ex.exerciseType === "duration";
 			const countLabel = isTimer ? "intervals" : isDuration ? "holds" : "sets";
 			const row = this.listEl.createDiv({ cls: "ln-te-exercise-row" });
+      const reorder = row.createDiv({ cls: "ln-te-reorder" });
+      const upBtn = reorder.createEl("button", {
+        cls: "ln-te-reorder-btn",
+        text: "\u2191",
+        attr: { "aria-label": "Move up" },
+      });
+      const downBtn = reorder.createEl("button", {
+        cls: "ln-te-reorder-btn",
+        text: "\u2193",
+        attr: { "aria-label": "Move down" },
+      });
+      upBtn.disabled = i === 0;
+      downBtn.disabled = i === this.template.exercises.length - 1;
+      upBtn.addEventListener("click", () => this.moveExercise(i, i - 1));
+      downBtn.addEventListener("click", () => this.moveExercise(i, i + 1));
 
 			let nameText: string;
 			if (isTimer) nameText = `\u23F1 ${ex.name}`;
@@ -128,7 +143,13 @@ export class TemplateEditorModal extends Modal {
 			});
 		}
 	}
+  private moveExercise(from: number, to: number): void {
+    const exercises = this.template.exercises;
+    if (to < 0 || to >= exercises.length) return;
 
+    [exercises[from], exercises[to]] = [exercises[to]!, exercises[from]!];
+    this.renderExercises();
+  }  
 	onClose(): void {
 		this.contentEl.empty();
 	}
