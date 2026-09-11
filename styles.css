@@ -1245,7 +1245,7 @@
 
 .ln-te-reorder {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	gap: 2px;
 	flex-shrink: 0;
 	margin-right: 10px;
