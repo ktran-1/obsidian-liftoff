@@ -48,50 +48,27 @@ export class ExercisePickerModal extends Modal {
 		this.updateResults("");
 	}
 
-	private updateResults(query: string): void {
-		this.resultsEl.empty();
+  private updateResults(query: string): void {
+    this.resultsEl.empty();
 
-		const queryLower = query.toLowerCase().trim();
+    const queryLower = query.toLowerCase().trim();
 
-		let matches: ExerciseLibraryEntry[];
-		if (queryLower === "") {
-			const recentEntries = this.recentNames
-				.map((name) => this.library.find((e) => e.name === name))
-				.filter((e): e is ExerciseLibraryEntry => e !== undefined);
-			const rest = this.library.filter((e) => !this.recentNames.includes(e.name));
+    const matches = this.library
+      .filter((e) => e.name.toLowerCase().includes(queryLower))
+      .sort((a, b) => a.name.localeCompare(b.name));
 
-			if (recentEntries.length > 0) {
-				this.resultsEl.createDiv({
-					cls: "ln-exercise-section-label",
-					text: "Recent",
-				});
-				for (const entry of recentEntries) {
-					this.addResultItem(entry);
-				}
-				this.resultsEl.createDiv({
-					cls: "ln-exercise-section-label",
-					text: "All",
-				});
-			}
-			matches = rest;
-		} else {
-			matches = this.library.filter((e) =>
-				e.name.toLowerCase().includes(queryLower)
-			);
-		}
+    for (const entry of matches) {
+      this.addResultItem(entry);
+    }
 
-		for (const entry of matches) {
-			this.addResultItem(entry);
-		}
-
-		if (
-			queryLower !== "" &&
-			!this.library.some((e) => e.name.toLowerCase() === queryLower)
-		) {
-			this.addCreateItems(query.trim());
-		}
-	}
-
+    if (
+      queryLower !== "" &&
+      !this.library.some((e) => e.name.toLowerCase() === queryLower)
+    ) {
+      this.addCreateItems(query.trim());
+    }
+  }
+	
 	private addResultItem(entry: ExerciseLibraryEntry): void {
 		const item = this.resultsEl.createDiv({
 			cls: "ln-exercise-result",
