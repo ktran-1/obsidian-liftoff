@@ -2,6 +2,7 @@ import { Menu } from "obsidian";
 import type { Exercise, WorkoutSet, LiftOffSettings } from "../types";
 import type { LastExerciseData } from "../utils/history";
 import { applyToBests, detectPRs, type PRBests, type PRKind } from "../utils/sets";
+import { renderTextWithLinks } from "../utils/linkify";
 import { DurationSetRow } from "./duration-set-row";
 import { SetRow } from "./set-row";
 import { TimerBlock } from "./timer-block";
@@ -88,12 +89,10 @@ export class ExerciseCard {
 		const libraryEntry = this.settings.exerciseLibrary.find(
 			(e) => e.name.toLowerCase() === this.exercise.name.toLowerCase()
 		);
-		if (libraryEntry?.notes) {
-			this.containerEl.createDiv({
-				cls: "ln-exercise-notes",
-				text: libraryEntry.notes,
-			});
-		}
+    if (libraryEntry?.notes) {
+      const notesEl = this.containerEl.createDiv({ cls: "ln-exercise-notes" });
+      renderTextWithLinks(notesEl, libraryEntry.notes);
+    }
 
 		// Toggle expand/collapse on header tap. Visibility-only (CSS class):
 		// re-rendering here would destroy a running timer or in-progress hold.
