@@ -282,6 +282,9 @@ export class WorkoutView extends ItemView {
 		let card: ExerciseCard;
 		const indexOf = () => this.exerciseCards.indexOf(card);
 		const callbacks: ExerciseCardCallbacks = {
+			onLibraryNotesChanged: () => {
+				void this.plugin.saveSettings();
+			},
 			onExerciseChanged: () => {
 				void this.persistState();
 			},
@@ -462,8 +465,39 @@ export class WorkoutView extends ItemView {
 		this.workout.exercises.push(newExercise);
 		this.exerciseCards.push(this.createCard(this.exercisesEl, newExercise));
 		void this.persistState();
+		void this.syncExerciseToTemplate(newExercise);
 	}
 
+	/**
+	 * If this workout was started from a template, also add the exercise to
+	 * that template so future workouts from it include it too. Best-effort:
+	 * the workout itself is already saved locally by this point, so a failure
+	 * here shouldn't look like a lost exercise.
+	 */
+	private async syncExerciseToTemplate(exercise: Exercise): Promise<void> {
+		if (!this.workout.template) return;
+
+		try {
+			const templates = await this.plugin.templateStore.getTemplates();
+			const template = templates.find((t) => t.name === this.workout.template);
+			if (!template) return;
+
+			const alreadyInTemplate = template.exercises.some(
+				(e) => e.name.toLowerCase() === exercise.name.toLowerCase()
+			);
+			if (alreadyInTemplate) return;
+
+			template.exercises.push({
+				name: exercise.name,
+				targetSets: exercise.sets.length || 3,
+				exerciseType: exercise.exerciseType === "weight" ? undefined : exercise.exerciseType,
+			});
+			await this.plugin.templateStore.saveTemplate(template);
+			new Notice(`Added "${exercise.name}" to template "${template.name}"`);
+		} catch (error) {
+			new Notice(`Couldn't update template with the new exercise: ${String(error)}`);
+		}
+	}
 	private moveExercise(from: number, to: number): void {
 		const exercises = this.workout.exercises;
 		if (from < 0 || to < 0 || from >= exercises.length || to >= exercises.length) return;

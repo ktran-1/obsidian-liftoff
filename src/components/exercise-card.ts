@@ -1,5 +1,5 @@
 import { Menu } from "obsidian";
-import type { Exercise, WorkoutSet, LiftOffSettings } from "../types";
+import type { Exercise, WorkoutSet, LiftOffSettings, ExerciseLibraryEntry } from "../types";
 import type { LastExerciseData } from "../utils/history";
 import { applyToBests, detectPRs, type PRBests, type PRKind } from "../utils/sets";
 import { renderTextWithLinks } from "../utils/linkify";
@@ -9,6 +9,7 @@ import { TimerBlock } from "./timer-block";
 
 export interface ExerciseCardCallbacks {
 	onExerciseChanged: (exercise: Exercise) => void;
+	onLibraryNotesChanged?: () => void;
 	onSetCompleted?: (set: WorkoutSet) => void;
 	onMoveUp?: () => void;
 	onMoveDown?: () => void;
@@ -30,6 +31,7 @@ export class ExerciseCard {
 	private setRows: SetRowLike[] = [];
 	private timerBlock: TimerBlock | null = null;
 	private expanded: boolean;
+	private editingLibraryNotes = false;
 	private historyBests: PRBests;
 	private bests: PRBests;
 	private prKindsByIndex: Map<number, PRKind[]> = new Map();
@@ -89,10 +91,9 @@ export class ExerciseCard {
 		const libraryEntry = this.settings.exerciseLibrary.find(
 			(e) => e.name.toLowerCase() === this.exercise.name.toLowerCase()
 		);
-    if (libraryEntry?.notes) {
-      const notesEl = this.containerEl.createDiv({ cls: "ln-exercise-notes" });
-      renderTextWithLinks(notesEl, libraryEntry.notes);
-    }
+		if (libraryEntry) {
+			this.renderLibraryNotes(libraryEntry);
+		}
 
 		// Toggle expand/collapse on header tap. Visibility-only (CSS class):
 		// re-rendering here would destroy a running timer or in-progress hold.
@@ -143,6 +144,57 @@ export class ExerciseCard {
 				);
 			}
 			menu.showAtMouseEvent(evt);
+		});
+	}
+	private renderLibraryNotes(libraryEntry: ExerciseLibraryEntry): void {
+		const section = this.containerEl.createDiv({ cls: "ln-exercise-notes-section" });
+
+		if (!this.editingLibraryNotes) {
+			if (libraryEntry.notes) {
+				const notesEl = section.createDiv({ cls: "ln-exercise-notes" });
+				renderTextWithLinks(notesEl, libraryEntry.notes);
+			}
+			const editBtn = section.createEl("button", {
+				cls: "ln-exercise-notes-edit-btn",
+				text: libraryEntry.notes ? "Edit note" : "Add note",
+			});
+			editBtn.addEventListener("click", (evt) => {
+				evt.stopPropagation();
+				this.editingLibraryNotes = true;
+				this.render();
+			});
+			return;
+		}
+
+		const originalValue = libraryEntry.notes ?? "";
+		const textarea = section.createEl("textarea", {
+			cls: "ln-exercise-notes-input",
+			attr: { rows: "3", placeholder: "Form cues, a link to a demo video, etc." },
+		});
+		textarea.value = originalValue;
+		textarea.addEventListener("click", (evt) => evt.stopPropagation());
+
+		const actions = section.createDiv({ cls: "ln-exercise-notes-actions" });
+		const saveBtn = actions.createEl("button", { cls: "ln-exercise-notes-save-btn mod-cta", text: "Save" });
+		const cancelBtn = actions.createEl("button", { cls: "ln-exercise-notes-cancel-btn", text: "Cancel" });
+		saveBtn.disabled = true;
+
+		textarea.addEventListener("input", () => {
+			saveBtn.disabled = textarea.value === originalValue;
+		});
+
+		saveBtn.addEventListener("click", (evt) => {
+			evt.stopPropagation();
+			libraryEntry.notes = textarea.value.trim() || undefined;
+			this.editingLibraryNotes = false;
+			this.callbacks.onLibraryNotesChanged?.();
+			this.render();
+		});
+
+		cancelBtn.addEventListener("click", (evt) => {
+			evt.stopPropagation();
+			this.editingLibraryNotes = false;
+			this.render();
 		});
 	}
 
