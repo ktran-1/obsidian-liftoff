@@ -387,25 +387,22 @@
 	margin-top: 4px;
 }
 
-.ln-exercise-notes-edit-btn {
-	margin-top: 4px;
-	padding: 2px 0;
-	border: none;
-	background: transparent;
-	box-shadow: none;
-	color: var(--text-faint);
+.ln-exercise-notes-display {
 	font-size: 11px;
-	cursor: pointer;
+	color: var(--text-muted);
+	font-style: italic;
+	margin-bottom: 4px;
+	min-height: 1.4em;
 }
 
-.ln-exercise-notes-edit-btn:hover {
-	color: var(--text-accent);
+.ln-exercise-notes-placeholder {
+	color: var(--text-faint);
 }
 
 .ln-exercise-notes-input {
 	width: 100%;
 	box-sizing: border-box;
-	margin-top: 4px;
+	margin-bottom: 4px;
 	padding: 8px 10px;
 	border: none;
 	border-radius: 8px;
@@ -414,7 +411,12 @@
 	font-size: 13px;
 	font-family: inherit;
 	line-height: 1.4;
-	resize: vertical;
+	resize: none;
+	overflow: hidden;
+	min-height: 36px;
+	height: var(--ln-note-height, 36px);
+	-webkit-appearance: none;
+	appearance: none;
 }
 
 .ln-exercise-notes-input::placeholder {
@@ -425,21 +427,28 @@
 	outline: 2px solid var(--interactive-accent);
 }
 
-.ln-exercise-notes-actions {
-	display: flex;
-	gap: 8px;
-	margin-top: 6px;
+.ln-exercise-notes-toggle-btn {
+	width: 100%;
+	box-sizing: border-box;
+	text-align: center;
+	padding: 10px;
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: 8px;
+	background: transparent;
+	color: var(--interactive-accent);
+	font-size: 13px;
+	cursor: pointer;
 }
 
-.ln-exercise-notes-save-btn,
-.ln-exercise-notes-cancel-btn {
-	padding: 4px 12px;
-	font-size: 12px;
+.ln-exercise-notes-toggle-btn:active {
+	opacity: 0.7;
 }
 
-.ln-exercise-notes-save-btn:disabled {
-	opacity: 0.5;
-	cursor: default;
+.ln-exercise-notes-toggle-btn.mod-cta {
+	border-style: solid;
+	border-color: var(--interactive-accent);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
 }
 
 .ln-exercise-previous {

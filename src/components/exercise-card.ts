@@ -150,13 +150,16 @@ export class ExerciseCard {
 		const section = this.containerEl.createDiv({ cls: "ln-exercise-notes-section" });
 
 		if (!this.editingLibraryNotes) {
+			const displayEl = section.createDiv({ cls: "ln-exercise-notes-display" });
 			if (libraryEntry.notes) {
-				const notesEl = section.createDiv({ cls: "ln-exercise-notes" });
-				renderTextWithLinks(notesEl, libraryEntry.notes);
+				renderTextWithLinks(displayEl, libraryEntry.notes);
+			} else {
+				displayEl.createSpan({ cls: "ln-exercise-notes-placeholder", text: "No notes yet" });
 			}
+
 			const editBtn = section.createEl("button", {
-				cls: "ln-exercise-notes-edit-btn",
-				text: libraryEntry.notes ? "Edit note" : "Add note",
+				cls: "ln-exercise-notes-toggle-btn",
+				text: "Edit",
 			});
 			editBtn.addEventListener("click", (evt) => {
 				evt.stopPropagation();
@@ -166,23 +169,25 @@ export class ExerciseCard {
 			return;
 		}
 
-		const originalValue = libraryEntry.notes ?? "";
 		const textarea = section.createEl("textarea", {
 			cls: "ln-exercise-notes-input",
-			attr: { rows: "3", placeholder: "Form cues, a link to a demo video, etc." },
+			attr: { rows: "1", placeholder: "Form cues, a link to a demo video, etc." },
 		});
-		textarea.value = originalValue;
+		textarea.value = libraryEntry.notes ?? "";
 		textarea.addEventListener("click", (evt) => evt.stopPropagation());
 
-		const actions = section.createDiv({ cls: "ln-exercise-notes-actions" });
-		const saveBtn = actions.createEl("button", { cls: "ln-exercise-notes-save-btn mod-cta", text: "Save" });
-		const cancelBtn = actions.createEl("button", { cls: "ln-exercise-notes-cancel-btn", text: "Cancel" });
-		saveBtn.disabled = true;
+		// Same auto-grow technique as the per-workout note field: starts at one
+		// line, grows to fit content, no manual resize handle.
+		const autoGrow = () => {
+			textarea.setCssProps({ "--ln-note-height": "auto" });
+			textarea.setCssProps({ "--ln-note-height": `${textarea.scrollHeight}px` });
+		};
+		textarea.addEventListener("input", autoGrow);
 
-		textarea.addEventListener("input", () => {
-			saveBtn.disabled = textarea.value === originalValue;
+		const saveBtn = section.createEl("button", {
+			cls: "ln-exercise-notes-toggle-btn mod-cta",
+			text: "Save",
 		});
-
 		saveBtn.addEventListener("click", (evt) => {
 			evt.stopPropagation();
 			libraryEntry.notes = textarea.value.trim() || undefined;
@@ -191,11 +196,8 @@ export class ExerciseCard {
 			this.render();
 		});
 
-		cancelBtn.addEventListener("click", (evt) => {
-			evt.stopPropagation();
-			this.editingLibraryNotes = false;
-			this.render();
-		});
+		autoGrow();
+		textarea.focus();
 	}
 
 	private renderNoteField(): void {
