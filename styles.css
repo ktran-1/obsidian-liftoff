@@ -906,6 +906,7 @@
 	justify-content: space-between;
 	align-items: center;
 	gap: 8px;
+	margin-bottom: 12px;
 }
 
 .ln-el-header-row h3 {
