@@ -103,8 +103,6 @@ export class ExerciseCard {
 
 		this.containerEl.toggleClass("ln-exercise-collapsed", !this.expanded);
 
-		this.renderNoteField();
-
 		if (this.isTimer) {
 			this.renderTimer();
 		} else if (this.isDuration) {
@@ -198,27 +196,6 @@ export class ExerciseCard {
 
 		autoGrow();
 		textarea.focus();
-	}
-
-	private renderNoteField(): void {
-		const noteEl = this.containerEl.createEl("textarea", {
-			cls: "ln-exercise-note-input",
-			attr: { placeholder: "Add a note…", rows: "1" },
-		});
-		noteEl.value = this.exercise.note ?? "";
-		const autoGrow = () => {
-			// Drive height via a CSS var the stylesheet consumes (Obsidian forbids
-			// direct el.style assignment). Set to auto first so scrollHeight reflows
-			// to the content height, then pin to it.
-			noteEl.setCssProps({ "--ln-note-height": "auto" });
-			noteEl.setCssProps({ "--ln-note-height": `${noteEl.scrollHeight}px` });
-		};
-		noteEl.addEventListener("input", () => {
-			this.exercise.note = noteEl.value;
-			autoGrow();
-			this.notifyChanged();
-		});
-		autoGrow();
 	}
 
 	private renderDurationSets(): void {

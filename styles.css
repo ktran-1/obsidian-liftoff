@@ -385,14 +385,19 @@
 
 .ln-exercise-notes-section {
 	margin-top: 4px;
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
 }
 
 .ln-exercise-notes-display {
+	flex: 1;
+	min-width: 0;
 	font-size: 11px;
 	color: var(--text-muted);
 	font-style: italic;
-	margin-bottom: 4px;
 	min-height: 1.4em;
+	padding: 8px 0;
 }
 
 .ln-exercise-notes-placeholder {
@@ -400,9 +405,9 @@
 }
 
 .ln-exercise-notes-input {
-	width: 100%;
+	flex: 1;
+	min-width: 0;
 	box-sizing: border-box;
-	margin-bottom: 4px;
 	padding: 8px 10px;
 	border: none;
 	border-radius: 8px;
@@ -428,10 +433,11 @@
 }
 
 .ln-exercise-notes-toggle-btn {
-	width: 100%;
+	flex-shrink: 0;
+	width: auto;
 	box-sizing: border-box;
 	text-align: center;
-	padding: 10px;
+	padding: 6px 12px;
 	border: 1px dashed var(--background-modifier-border);
 	border-radius: 8px;
 	background: transparent;
@@ -893,6 +899,34 @@
 /* --- Exercise Library Modal --- */
 .ln-exercise-library {
 	padding: 8px;
+}
+
+.ln-el-header-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+}
+
+.ln-el-header-row h3 {
+	margin: 0;
+}
+
+.ln-el-add-btn {
+	flex-shrink: 0;
+	min-width: 32px;
+	min-height: 32px;
+	border-radius: 8px;
+	border: 1px solid var(--interactive-accent);
+	background: transparent;
+	color: var(--interactive-accent);
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.ln-el-add-btn:active {
+	opacity: 0.7;
 }
 
 .ln-el-list {

@@ -1,6 +1,8 @@
 import { App, Modal } from "obsidian";
 import type { ExerciseLibraryEntry, ExerciseType } from "../types";
 import { ConfirmModal } from "./modals";
+import { ExercisePickerModal } from "./exercise-picker";
+import { renderTextWithLinks } from "../utils/linkify";
 
 export class ExerciseLibraryModal extends Modal {
 	private library: ExerciseLibraryEntry[];
@@ -23,7 +25,31 @@ export class ExerciseLibraryModal extends Modal {
 		contentEl.empty();
 		contentEl.addClass("ln-exercise-library");
 
-		contentEl.createEl("h3", { text: "Exercise library" });
+		const headerRow = contentEl.createDiv({ cls: "ln-el-header-row" });
+		headerRow.createEl("h3", { text: "Exercise library" });
+		const addBtn = headerRow.createEl("button", {
+			cls: "ln-el-add-btn",
+			text: "+",
+			attr: { "aria-label": "Add exercise" },
+		});
+		addBtn.addEventListener("click", () => {
+			new ExercisePickerModal(this.app, this.library, [], (name, exerciseType) => {
+				const existingIndex = this.library.findIndex(
+					(e) => e.name.toLowerCase() === name.toLowerCase()
+				);
+				if (existingIndex !== -1) {
+					this.editingIndex = existingIndex;
+				} else {
+					this.library.push({
+						name,
+						exerciseType: exerciseType === "weight" ? undefined : exerciseType,
+					});
+					this.save();
+					this.editingIndex = this.library.length - 1;
+				}
+				this.renderList();
+			}).open();
+		});
 
 		this.listEl = contentEl.createDiv({ cls: "ln-el-list" });
 		this.renderList();
@@ -67,7 +93,8 @@ export class ExerciseLibraryModal extends Modal {
 		nameRow.createSpan({ cls: "ln-el-name", text: entry.name });
 
 		if (entry.notes) {
-			info.createDiv({ cls: "ln-el-notes-preview", text: entry.notes });
+			const notesPreview = info.createDiv({ cls: "ln-el-notes-preview" });
+			renderTextWithLinks(notesPreview, entry.notes);
 		}
 
 		const actions = row.createDiv({ cls: "ln-el-actions" });
@@ -181,7 +208,7 @@ export class ExerciseLibraryModal extends Modal {
 			this.renderList();
 		});
 
-		window.activeWindow.setTimeout(() => nameInput.focus(), 50);
+		window.activeWindow.setTimeout(() => notesInput.focus(), 50);
 	}
 
 	private save(): void {
