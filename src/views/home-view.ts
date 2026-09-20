@@ -328,10 +328,47 @@ export class HomeView extends ItemView {
 			},
 			(name, exerciseType) => {
 				void this.addToUnsortedTemplate(name, exerciseType);
+			},
+			(oldName, newName) => {
+				void this.renameExerciseInTemplates(oldName, newName);
 			}
-		).open();
+			).open();
 	}
 
+	/**
+	 * Templates store exercises by name (not a stable id), so a rename in the
+	 * library leaves every template still pointing at the old name unless we
+	 * walk them here too.
+	 */
+	private async renameExerciseInTemplates(oldName: string, newName: string): Promise<void> {
+		try {
+			const templates = await this.plugin.templateStore.getTemplates();
+			let updatedCount = 0;
+
+			for (const template of templates) {
+				let changed = false;
+				for (const ex of template.exercises) {
+					if (ex.name.toLowerCase() === oldName.toLowerCase()) {
+						ex.name = newName;
+						changed = true;
+					}
+				}
+				if (changed) {
+					await this.plugin.templateStore.saveTemplate(template);
+					updatedCount++;
+				}
+			}
+
+			if (updatedCount > 0) {
+				new Notice(
+					`Renamed "${oldName}" to "${newName}" in ${updatedCount} template${updatedCount === 1 ? "" : "s"}.`
+				);
+			}
+		} catch (error) {
+			new Notice(`Couldn't update templates for the rename: ${String(error)}`);
+		}
+	}
+	
 	private async addToUnsortedTemplate(name: string, exerciseType: ExerciseType): Promise<void> {
 		try {
 			const templates = await this.plugin.templateStore.getTemplates();

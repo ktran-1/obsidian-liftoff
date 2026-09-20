@@ -14,7 +14,8 @@ export class ExerciseLibraryModal extends Modal {
 		app: App,
 		library: ExerciseLibraryEntry[],
 		onSave: (library: ExerciseLibraryEntry[]) => void,
-		private onExerciseCreated?: (name: string, exerciseType: ExerciseType) => void
+		private onExerciseCreated?: (name: string, exerciseType: ExerciseType) => void,
+		private onExerciseRenamed?: (oldName: string, newName: string) => void
 	) {
 		super(app);
 		this.library = library.map((e) => ({ ...e }));
@@ -202,11 +203,15 @@ export class ExerciseLibraryModal extends Modal {
 		saveBtn.addEventListener("click", () => {
 			const newName = nameInput.value.trim();
 			if (!newName) return;
+			const previousName = entry.name;
 			entry.name = newName;
 			entry.exerciseType = currentType === "weight" ? undefined : currentType;
 			entry.notes = notesInput.value.trim() || undefined;
 			this.editingIndex = null;
 			this.save();
+			if (newName.toLowerCase() !== previousName.toLowerCase()) {
+				this.onExerciseRenamed?.(previousName, newName);
+			}
 			this.renderList();
 		});
 
