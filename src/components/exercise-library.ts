@@ -13,7 +13,8 @@ export class ExerciseLibraryModal extends Modal {
 	constructor(
 		app: App,
 		library: ExerciseLibraryEntry[],
-		onSave: (library: ExerciseLibraryEntry[]) => void
+		onSave: (library: ExerciseLibraryEntry[]) => void,
+		private onExerciseCreated?: (name: string, exerciseType: ExerciseType) => void
 	) {
 		super(app);
 		this.library = library.map((e) => ({ ...e }));
@@ -46,6 +47,7 @@ export class ExerciseLibraryModal extends Modal {
 					});
 					this.save();
 					this.editingIndex = this.library.length - 1;
+					this.onExerciseCreated?.(name, exerciseType);
 				}
 				this.renderList();
 			}).open();

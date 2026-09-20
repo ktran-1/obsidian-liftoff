@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf, Notice, TFile, normalizePath } from "obsidian";
 import type LiftOffPlugin from "../main";
-import type { WorkoutTemplate } from "../types";
+import type { WorkoutTemplate, ExerciseType } from "../types";
 import { TextInputModal, ConfirmModal } from "../components/modals";
 import { TemplateEditorModal } from "../components/template-editor";
 import { ExerciseLibraryModal } from "../components/exercise-library";
@@ -311,7 +311,11 @@ export class HomeView extends ItemView {
 		).open();
 	}
 
-	private openExerciseLibrary(): void {
+	private async openExerciseLibrary(): Promise<void> {
+		// Pull the latest settings from disk before opening, in case something
+		// else (sync, another device) changed the library since this view loaded.
+		await this.plugin.loadPluginData();
+
 		new ExerciseLibraryModal(
 			this.app,
 			this.plugin.settings.exerciseLibrary,
@@ -321,8 +325,35 @@ export class HomeView extends ItemView {
 					await this.plugin.saveSettings();
 					await this.renderHome();
 				})();
+			},
+			(name, exerciseType) => {
+				void this.addToUnsortedTemplate(name, exerciseType);
 			}
 		).open();
+	}
+
+	private async addToUnsortedTemplate(name: string, exerciseType: ExerciseType): Promise<void> {
+		try {
+			const templates = await this.plugin.templateStore.getTemplates();
+			let unsorted = templates.find((t) => t.name === "Unsorted");
+			if (!unsorted) {
+				unsorted = { type: "workout-template", name: "Unsorted", exercises: [] };
+			}
+
+			const alreadyIn = unsorted.exercises.some(
+				(e) => e.name.toLowerCase() === name.toLowerCase()
+			);
+			if (!alreadyIn) {
+				unsorted.exercises.push({
+					name,
+					targetSets: 3,
+					exerciseType: exerciseType === "weight" ? undefined : exerciseType,
+				});
+				await this.plugin.templateStore.saveTemplate(unsorted);
+			}
+		} catch (error) {
+			new Notice(`Couldn't add "${name}" to the Unsorted template: ${String(error)}`);
+		}
 	}
 
 	async onClose(): Promise<void> {}
